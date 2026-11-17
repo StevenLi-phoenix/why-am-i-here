@@ -267,7 +267,8 @@ final class AppModel {
 
     // MARK: Deep links
 
-    /// `whyamihere://ask?app=<id>`, `closed?app=<id>`, `reminder`, `preview`, `today`, `reflection`, `settings`.
+    /// `whyamihere://ask?app=<id>`, `closed?app=<id>`, `reminder`, `preview`, `preview-reminder`, `today`,
+    /// `reflection`, `settings`.
     func handle(url: URL) {
         guard url.scheme == "whyamihere" else { return }
         let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
@@ -282,6 +283,11 @@ final class AppModel {
             if let active = store.activeSessions().first { showReminder(pickupID: active.id, minutes: nil) }
         case "preview":
             startPreview()
+        case "preview-reminder":
+            // The reminder half of the preview on its own; used for screenshots.
+            let app = settings.watchedApps.first ?? AppCatalog.builtIn[0]
+            overlay = .reminder(ReminderContext(id: UUID(), app: app, reasonLabel: Reason.messages.title,
+                                                minutes: settings.remindAfterMinutes, isPreview: true))
         case "today":
             overlay = nil
             selectedTab = .today

@@ -8,6 +8,8 @@ enum Theme {
     static let tertiary = Color(red: 235 / 255, green: 235 / 255, blue: 245 / 255).opacity(0.3)
     static let track = Color.white.opacity(0.13)
     static let hairline = Color.white.opacity(0.28)
+    /// System green in dark mode; switches stay green while the rest of the app is tinted blue.
+    static let switchOn = Color(red: 48 / 255, green: 209 / 255, blue: 88 / 255)
     static let disabledFill = Color(red: 118 / 255, green: 118 / 255, blue: 128 / 255).opacity(0.24)
 
     static let cardRadius: CGFloat = 26

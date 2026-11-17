@@ -102,5 +102,12 @@ final class SettingsFormatTests: XCTestCase {
         XCTAssertEqual(summary.topReasons.map(\.count), [12, 9, 7])
         XCTAssertEqual(Stats.lastCheckIn(store.lastCheckIn()?.record)?.label, "Messages")
         XCTAssertTrue(store.records(in: today).allSatisfy { $0.openedAt <= now })
+
+        let week = testCalendar.dateInterval(of: .weekOfYear, for: now)!
+        let previous = DateInterval(start: testCalendar.date(byAdding: .day, value: -7, to: week.start)!, end: week.start)
+        let weekly = Stats.week(records: store.records(in: week), previous: store.records(in: previous),
+                                now: now, calendar: testCalendar)
+        XCTAssertEqual(weekly.changePercent, -8)
+        XCTAssertEqual(weekly.days.map(\.count), [30, 26, 33, 37, 0, 0, 0])
     }
 }

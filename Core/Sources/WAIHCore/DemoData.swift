@@ -15,9 +15,10 @@ public enum DemoData {
         let week = calendar.dateInterval(of: .weekOfYear, for: now)!
         let todayIndex = calendar.dateComponents([.day], from: week.start, to: startOfToday).day ?? 0
 
-        // Earlier days of this week and all of last week.
-        let thisWeek = [30, 26, 33, 28, 38, 44, 42]
-        let lastWeek = [33, 29, 35, 31, 40, 47, 45]
+        // Earlier days of this week, and a last week that was about 8% busier ("Down 8%").
+        var thisWeek = [30, 26, 33, 28, 38, 44, 42]
+        thisWeek[todayIndex % 7] = today.reduce(0) { $0 + $1.1 }
+        let lastWeek = thisWeek.map { Int((Double($0) / 0.92).rounded()) }
         for (offset, count) in lastWeek.enumerated() {
             let day = calendar.date(byAdding: .day, value: offset - 7, to: week.start)!
             fill(store, day: day, count: count, minutesEach: 4, calendar: calendar, seed: offset)
