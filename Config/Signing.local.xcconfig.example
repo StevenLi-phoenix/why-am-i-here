@@ -1,0 +1,4 @@
+// Copy to Signing.local.xcconfig and fill in your own values.
+// Find your team ID at https://developer.apple.com/account (Membership details).
+DEVELOPMENT_TEAM = ABCDE12345
+WAIH_BUNDLE_ID = com.yourname.whyamihere
