@@ -4,6 +4,7 @@
 #   scripts/build.sh test                 unit tests + UI tests on a simulator
 #   scripts/build.sh ipa                  signed development build -> build/WhyAmIHere.ipa
 #   scripts/build.sh install [udid]       ipa, then install on a connected iPhone
+#   scripts/build.sh testflight           App Store build, uploaded to App Store Connect (TestFlight)
 #
 # Signing uses the team and bundle id in Config/Signing.local.xcconfig (see the .example file).
 set -euo pipefail
@@ -47,14 +48,40 @@ run_tests() {
     -derivedDataPath "$DERIVED" test
 }
 
-build_ipa() {
+archive() {
   require_signing
   generate
   log "Archiving (team $TEAM)"
   rm -rf "$ARCHIVE" "$EXPORT"
   xcodebuild -project WhyAmIHere.xcodeproj -scheme WhyAmIHere -configuration Release \
     -destination 'generic/platform=iOS' -derivedDataPath "$DERIVED" -archivePath "$ARCHIVE" \
-    -allowProvisioningUpdates -allowProvisioningDeviceRegistration archive
+    -allowProvisioningUpdates -allowProvisioningDeviceRegistration "$@" archive
+}
+
+upload_testflight() {
+  # Build number = UTC timestamp so every upload is unique; auth = Xcode's signed-in account.
+  local build_number; build_number="$(date -u +%Y%m%d%H%M)"
+  archive CURRENT_PROJECT_VERSION="$build_number"
+  cat > "$ROOT/build/ExportOptions-TestFlight.plist" <<PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>method</key><string>app-store-connect</string>
+  <key>destination</key><string>upload</string>
+  <key>signingStyle</key><string>automatic</string>
+  <key>teamID</key><string>$TEAM</string>
+</dict>
+</plist>
+PLIST
+  log "Uploading build $build_number to App Store Connect"
+  xcodebuild -exportArchive -archivePath "$ARCHIVE" -exportPath "$EXPORT" \
+    -exportOptionsPlist "$ROOT/build/ExportOptions-TestFlight.plist" -allowProvisioningUpdates
+  log "Uploaded build $build_number; it shows up under TestFlight after processing (~5-15 min)"
+}
+
+build_ipa() {
+  archive
   cat > "$ROOT/build/ExportOptions.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -90,5 +117,6 @@ case "${1:-}" in
   test) run_tests ;;
   ipa) build_ipa ;;
   install) install_ipa "${2:-}" ;;
-  *) sed -n '2,8p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
+  testflight) upload_testflight ;;
+  *) sed -n '2,9p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
 esac
