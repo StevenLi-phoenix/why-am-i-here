@@ -93,6 +93,7 @@ struct ReasonRow: View {
                 .font(.system(size: 17))
                 .foregroundStyle(.white)
                 .lineLimit(1)
+                .minimumScaleFactor(0.8)
                 .frame(maxWidth: .infinity, alignment: .leading)
             Capsule().fill(Color.white.opacity(0.14))
                 .frame(width: barWidth, height: 6)
@@ -160,7 +161,8 @@ struct QuietButton: View {
             Text(title)
                 .font(.system(size: 17))
                 .foregroundStyle(Theme.accent)
-                .frame(minWidth: 160, minHeight: 44)
+                .frame(minWidth: 140, minHeight: 44)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }

@@ -71,6 +71,7 @@ public enum Stats {
     public static func lastCheckIn(_ record: PickupRecord?) -> LastCheckIn? {
         guard let record else { return nil }
         if let label = record.reasonLabel { return LastCheckIn(label: label, date: record.openedAt) }
+        if record.changedMind { return LastCheckIn(label: "Changed Your Mind", date: record.openedAt) }
         return record.skipped ? LastCheckIn(label: "Skipped", date: record.openedAt) : nil
     }
 

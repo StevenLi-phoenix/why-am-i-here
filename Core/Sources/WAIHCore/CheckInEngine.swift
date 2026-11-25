@@ -177,6 +177,23 @@ public final class CheckInEngine {
         return pickup
     }
 
+    /// "Never Mind": the user decided not to go into the app. No session starts and no reminders are planned.
+    public func changeMind(pickupID: UUID) {
+        guard let pickup = store.pickup(id: pickupID) else {
+            Log.engine.error("changeMind: unknown pickup \(pickupID.uuidString, privacy: .public)")
+            return
+        }
+        pickup.reason = nil
+        pickup.note = nil
+        pickup.skipped = false
+        pickup.sessionStart = nil
+        pickup.sessionEnd = now()
+        pickup.endedBy = .changedMind
+        store.save()
+        reminders?.cancelReminders(pickupID: pickupID)
+        Log.engine.info("changed mind \(pickup.appID, privacy: .public)")
+    }
+
     // MARK: Session end
 
     /// Called by the "Is Closed" automation.

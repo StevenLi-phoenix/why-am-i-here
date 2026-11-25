@@ -19,7 +19,7 @@ struct WatchedAppsView: View {
 
             Section {
                 ForEach(AppCatalog.builtIn) { app in
-                    AppRow(app: app, watched: model.settings.isWatched(app.id)) {
+                    AppRow(app: app, watched: model.settings.isWatched(app.id), lastOpen: model.lastOpens[app.id]) {
                         model.setWatched(app, !model.settings.isWatched(app.id))
                     }
                 }
@@ -29,7 +29,7 @@ struct WatchedAppsView: View {
 
             Section {
                 ForEach(model.settings.customApps) { app in
-                    AppRow(app: app, watched: model.settings.isWatched(app.id)) {
+                    AppRow(app: app, watched: model.settings.isWatched(app.id), lastOpen: model.lastOpens[app.id]) {
                         model.setWatched(app, !model.settings.isWatched(app.id))
                     }
                 }
@@ -59,12 +59,21 @@ struct WatchedAppsView: View {
 private struct AppRow: View {
     let app: WatchedApp
     let watched: Bool
+    let lastOpen: Date?
     let toggle: () -> Void
 
     var body: some View {
         Button(action: toggle) {
             HStack {
-                Text(app.name).foregroundStyle(.white)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(app.name).foregroundStyle(.white)
+                    // Watched apps say whether their automation has reached us yet.
+                    if watched {
+                        Text(SetupStatusRow.status(lastOpen))
+                            .font(.system(size: 13))
+                            .foregroundStyle(lastOpen == nil ? Theme.secondary : Theme.switchOn)
+                    }
+                }
                 Spacer()
                 if watched {
                     Image(systemName: "checkmark")

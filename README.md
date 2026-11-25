@@ -10,11 +10,11 @@ Built in SwiftUI from the "Why Am I Here? – Screen Sketches" Figma prototype.
 
 | Screen | What you see |
 | --- | --- |
-| **Intent Check** | "Why Are You Here?" with seven reasons (Messages, Look Something Up, Work or School, Directions, Check the Time, Just Bored, Other…). Continue takes you on to the app; Skip for Now lets you through without an answer. |
+| **Intent Check** | "Why Are You Here?" with seven reasons (Messages, Look Something Up, Work or School, Directions, Check the Time, Just Bored, Other…). Continue takes you on to the app; Skip for Now lets you through without an answer; Never Mind keeps you out of it. |
 | **Gentle Reminder** | A notification after N minutes in the app: "Still here for “Messages”?". Tapping it shows how long you have been there, with **I’m Done for Now** and **Keep Going**. |
 | **Today** | Share of intentional pickups, screen time in watched apps, pickups, mindless pickups, top reasons, and this week's trend. |
 | **Reflection** | The current week: pickups per day against the average, top reasons by share, change against last week, and one sentence about your habits. |
-| **Settings** | Turn asking on or off, how often to ask, the reminder interval, which apps to watch, and quiet hours. |
+| **Settings** | Which apps to watch (with whether each one's automation works), asking on or off, how often to ask, the reminder interval, quiet hours, and sample data or a full reset. |
 
 ## How it works
 
@@ -54,6 +54,7 @@ Do this once for each watched app. The same steps are in the app under **Setting
 3. Pick the app (for example Instagram), keep **Is Opened** checked, and choose **Run Immediately**.
 4. Tap **Next**, then **New Blank Automation**.
 5. Search for **Ask Why I’m Here**, add it, and set **App** to the same app.
+6. Open the app to try it. Once it asks, **Settings → Watched Apps** shows it as *Working*.
 
 **Stop the clock when it closes**
 
@@ -70,18 +71,21 @@ To see the flow without setting anything up, use **Settings → Watched Apps →
 | Setting | Behavior |
 | --- | --- |
 | Ask Why Before Watched Apps | Off: nothing is asked, but pickups and screen time are still counted. |
-| How Often → Every Open | Asks every time. |
+| How Often → Every Open | Asks every time. Default. |
 | How Often → Every 3rd Open | Asks on the 1st, 4th, 7th… open of each app per day. |
 | How Often → After 30+ Minutes Away | Asks only if you last left the app at least 30 minutes ago. |
 | Remind Me in Watched Apps | Sends a reminder every N minutes of a session, up to four times. |
 | Remind After (Minutes) | 5 to 60, in steps of 5. Default 15. |
-| Watched Apps | 20 built-in apps plus any you add by name and URL scheme. Default: Instagram and TikTok. |
-| Quiet Hours → Pause All Prompts | No questions and no reminders from 10 PM to 7 AM. |
+| Watched Apps | 20 built-in apps plus any you add by name and URL scheme. Default: Instagram and TikTok. Each watched app shows whether its automation has reported an open yet. |
+| Quiet Hours → Pause All Prompts | No questions and no reminders between From and To (default 10 PM to 7 AM). |
+| Data → Load Sample Week | Replaces your history with the prototype's sample week, for demos and user testing. |
+| Data → Erase All Data and Settings | Deletes every pickup and pending reminder and restores the default settings. |
 
 ## How the numbers are counted
 
 - **Pickup** – one open of a watched app, whether or not you were asked.
 - **Mindless** – you answered "Just Bored" or tapped Skip for Now.
+- **Changed Your Mind** – you tapped Never Mind. It counts as a pickup but is neither mindless nor intentional.
 - **Intentional %** – pickups with any other reason, as a share of pickups where you answered or skipped. Opens that were not asked about, and questions you walked away from, are left out.
 - **Screen Time** – time from Continue (or from the open, when not asked) until the app is closed. It covers watched apps only; this is not the system-wide Screen Time figure.
 - **vs Last Week** – pickups so far this week against the same weekdays of last week.
@@ -99,7 +103,9 @@ App/                  SwiftUI app
   NotificationManager.swift
 UITests/              XCUITest flows
 Config/               Build settings; Signing.local.xcconfig holds your team and bundle ID
-scripts/build.sh      test / ipa / install
+scripts/build.sh      test / ipa / install / testflight
+scripts/walkthrough.sh  screenshots of every usability-test task step
+docs/design/usability-test/  test plan, session sheet, inspection report
 scripts/make_icon.swift
 project.yml           XcodeGen project definition
 ```
@@ -109,7 +115,10 @@ project.yml           XcodeGen project definition
 ```sh
 scripts/build.sh test          # Core unit tests on the Mac, then UI tests on an iPhone simulator
 swift test --package-path Core # unit tests only
+scripts/walkthrough.sh /tmp/screens  # plays the usability-test tasks and saves a screenshot per step
 ```
+
+The usability test for the course lives in [docs/design/usability-test](docs/design/usability-test): the [test plan](docs/design/usability-test/test-plan.md), a [session sheet](docs/design/usability-test/session-sheet.md) per participant, and the [inspection](docs/design/usability-test/inspection.md) done before it.
 
 Launch arguments and deep links used by the tests, also handy for debugging:
 
@@ -134,4 +143,4 @@ log stream --predicate 'subsystem == "whyamihere"' --level info
 
 - URL schemes for the built-in apps come from community documentation, not from Apple or the app makers. If one fails, the app says so and you switch back by hand; you can add the app again under **Your Apps** with a scheme that works.
 - The check-in is a prompt, not a lock. Anyone can remove the automation or skip the question.
-- Quiet hours are fixed at 10 PM to 7 AM.
+- Quiet hours are whole hours, and one window applies to every day.

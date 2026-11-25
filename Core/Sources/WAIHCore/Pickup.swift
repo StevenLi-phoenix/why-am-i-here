@@ -8,6 +8,8 @@ public enum SessionEnd: String, Codable, Sendable {
     case closed
     /// A newer open arrived while this session was still marked active.
     case stale
+    /// The user tapped "Never Mind" on the Intent Check and did not go into the app.
+    case changedMind
 }
 
 /// One open of a watched app, with the check-in answer and the time spent afterwards.
@@ -54,7 +56,8 @@ public final class Pickup {
     public var record: PickupRecord {
         PickupRecord(id: id, appID: appID, appName: appName, openedAt: openedAt, prompted: prompted,
                      reason: reason, note: note, skipped: skipped,
-                     sessionStart: sessionStart, sessionEnd: sessionEnd)
+                     sessionStart: sessionStart, sessionEnd: sessionEnd,
+                     changedMind: endedBy == .changedMind)
     }
 }
 
@@ -70,10 +73,12 @@ public struct PickupRecord: Equatable, Sendable, Identifiable {
     public var skipped: Bool
     public var sessionStart: Date?
     public var sessionEnd: Date?
+    /// Asked, then chose "Never Mind" and stayed out of the app.
+    public var changedMind: Bool
 
     public init(id: UUID = UUID(), appID: String, appName: String, openedAt: Date, prompted: Bool = true,
                 reason: Reason? = nil, note: String? = nil, skipped: Bool = false,
-                sessionStart: Date? = nil, sessionEnd: Date? = nil) {
+                sessionStart: Date? = nil, sessionEnd: Date? = nil, changedMind: Bool = false) {
         self.id = id
         self.appID = appID
         self.appName = appName
@@ -84,6 +89,7 @@ public struct PickupRecord: Equatable, Sendable, Identifiable {
         self.skipped = skipped
         self.sessionStart = sessionStart
         self.sessionEnd = sessionEnd
+        self.changedMind = changedMind
     }
 
     /// Opened out of boredom, or went in without naming a reason.

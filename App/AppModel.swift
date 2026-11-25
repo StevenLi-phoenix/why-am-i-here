@@ -56,7 +56,11 @@ final class AppModel {
             let remindersChanged = settings.remindInWatchedApps != oldValue.remindInWatchedApps
                 || settings.remindAfterMinutes != oldValue.remindAfterMinutes
                 || settings.pauseDuringQuietHours != oldValue.pauseDuringQuietHours
+                || settings.quietStartHour != oldValue.quietStartHour
+                || settings.quietEndHour != oldValue.quietEndHour
             if remindersChanged { engine.refreshReminders() }
+            // A newly watched app needs its setup status.
+            if settings.watchedAppIDs != oldValue.watchedAppIDs { refresh() }
             Log.settings.info("settings saved (reminders replanned: \(remindersChanged))")
         }
     }
@@ -71,6 +75,9 @@ final class AppModel {
     private(set) var lastCheckIn: LastCheckIn?
     /// False until the first pickup is recorded; drives the setup card on Today.
     private(set) var hasHistory = false
+    /// Last time each watched app's automation reported an open, by app id. Absent = never, so the
+    /// automation is probably not set up yet.
+    private(set) var lastOpens: [String: Date] = [:]
 
     private var noticeTask: Task<Void, Never>?
     private var didHandleLaunchURL = false
@@ -132,6 +139,12 @@ final class AppModel {
         week = Stats.week(records: records, previous: previous, now: now, calendar: calendar)
         lastCheckIn = Stats.lastCheckIn(store.lastCheckIn()?.record)
         hasHistory = store.totalCount > 0
+        // One indexed fetch per watched app; a handful at most.
+        var opens: [String: Date] = [:]
+        for app in settings.watchedApps {
+            if let last = store.lastPickup(appID: app.id, before: .distantFuture) { opens[app.id] = last.openedAt }
+        }
+        lastOpens = opens
     }
 
     func becameActive() {
@@ -192,6 +205,19 @@ final class AppModel {
         handOff(to: context.app)
     }
 
+    /// "Never Mind": stays out of the watched app (the storyboard's "Maybe not.").
+    func changeMind(_ context: CheckInContext) {
+        overlay = nil
+        selectedTab = .today
+        if context.isPreview {
+            show(notice: "That was a preview. Nothing was saved.")
+            return
+        }
+        engine.changeMind(pickupID: context.id)
+        refresh()
+        show(notice: "Nice. \(context.app.name) can wait.")
+    }
+
     // MARK: Gentle Reminder
 
     func showReminder(pickupID: UUID, minutes: Int?) {
@@ -209,7 +235,10 @@ final class AppModel {
     /// "I'm Done for Now".
     func finishReminder(_ context: ReminderContext) {
         overlay = nil
-        guard !context.isPreview else { return }
+        guard !context.isPreview else {
+            show(notice: "That was a preview. Nothing was saved.")
+            return
+        }
         finishSession(pickupID: context.id)
         selectedTab = .today
     }
@@ -224,7 +253,10 @@ final class AppModel {
     /// "Keep Going".
     func keepGoing(_ context: ReminderContext) {
         overlay = nil
-        guard !context.isPreview else { return }
+        guard !context.isPreview else {
+            show(notice: "That was a preview. Nothing was saved.")
+            return
+        }
         engine.keepGoing(pickupID: context.id)
         refresh()
         handOff(to: context.app)
@@ -236,6 +268,29 @@ final class AppModel {
     func startPreview() {
         let app = settings.watchedApps.first ?? AppCatalog.builtIn[0]
         overlay = .checkIn(CheckInContext(id: UUID(), app: app, pickupNumber: today.pickups + 1, isPreview: true))
+    }
+
+    // MARK: Data
+
+    /// Replaces the history with the prototype's sample week, for demos and usability sessions.
+    func loadSampleWeek() {
+        notifications.cancelAll()
+        DemoData.seed(store, now: Date(), calendar: engine.calendar)
+        refresh()
+        selectedTab = .today
+        show(notice: "Sample week loaded.")
+        Log.store.notice("sample week loaded from Settings: \(self.store.totalCount) pickups")
+    }
+
+    /// Deletes every pickup and restores the default settings, like a fresh install.
+    func eraseAll() {
+        notifications.cancelAll()
+        store.deleteAll()
+        settings = WAIHSettings()
+        refresh()
+        selectedTab = .today
+        show(notice: "All data and settings erased.")
+        Log.store.notice("erased all data and settings")
     }
 
     // MARK: Handoff

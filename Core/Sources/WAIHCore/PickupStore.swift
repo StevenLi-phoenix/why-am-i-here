@@ -82,10 +82,11 @@ public final class PickupStore {
         return fetch(descriptor).first
     }
 
-    /// Most recent pickup that has an answer or a skip.
+    /// Most recent pickup that has an answer, a skip or a "Never Mind".
     public func lastCheckIn() -> Pickup? {
+        let changedMind: String? = SessionEnd.changedMind.rawValue
         var descriptor = FetchDescriptor<Pickup>(
-            predicate: #Predicate { $0.reasonRaw != nil || $0.skipped },
+            predicate: #Predicate { $0.reasonRaw != nil || $0.skipped || $0.endedByRaw == changedMind },
             sortBy: [SortDescriptor(\.openedAt, order: .reverse)])
         descriptor.fetchLimit = 1
         return fetch(descriptor).first

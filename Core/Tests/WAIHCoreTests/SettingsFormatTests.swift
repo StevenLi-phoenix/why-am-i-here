@@ -5,7 +5,7 @@ final class SettingsFormatTests: XCTestCase {
     func testDefaultsMatchPrototype() {
         let settings = WAIHSettings()
         XCTAssertTrue(settings.askBeforeWatchedApps)
-        XCTAssertEqual(settings.frequency, .everyThirdOpen)
+        XCTAssertEqual(settings.frequency, .everyOpen, "a new user expects to be asked on every open")
         XCTAssertTrue(settings.remindInWatchedApps)
         XCTAssertEqual(settings.remindAfterMinutes, 15)
         XCTAssertEqual(settings.watchedSummary, "Instagram, TikTok")
@@ -86,6 +86,15 @@ final class SettingsFormatTests: XCTestCase {
         XCTAssertEqual(Format.trend(-8), "Down 8%")
         XCTAssertEqual(Format.trend(8), "Up 8%")
         XCTAssertEqual(Format.trend(0), "No Change")
+        XCTAssertTrue(PromptFrequency.allCases.allSatisfy { !$0.detail.isEmpty })
+    }
+
+    func testWeekdayAndLastSeen() {
+        let now = date(6, 21, 12)
+        XCTAssertEqual(Format.weekday(date(3), calendar: testCalendar), "Monday")
+        XCTAssertEqual(Format.lastSeen(date(6, 9, 41), now: now, calendar: testCalendar), "today at 9:41 AM")
+        XCTAssertEqual(Format.lastSeen(date(5, 23), now: now, calendar: testCalendar), "yesterday")
+        XCTAssertEqual(Format.lastSeen(date(2, 10), now: now, calendar: testCalendar), "on Nov 2")
     }
 
     @MainActor

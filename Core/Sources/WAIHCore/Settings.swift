@@ -14,6 +14,15 @@ public enum PromptFrequency: String, Codable, CaseIterable, Sendable, Identifiab
         case .afterThirtyMinutesAway: "After 30+ Minutes Away"
         }
     }
+
+    /// Shown under the choices, so the rule behind the selected one is never a guess.
+    public var detail: String {
+        switch self {
+        case .everyOpen: "Asks every time you open a watched app."
+        case .everyThirdOpen: "Asks on the 1st, 4th, 7th… open of each app every day. The opens in between go straight through."
+        case .afterThirtyMinutesAway: "Asks only when you come back to an app after at least 30 minutes away."
+        }
+    }
 }
 
 public struct WAIHSettings: Codable, Equatable, Sendable {
@@ -23,7 +32,8 @@ public struct WAIHSettings: Codable, Equatable, Sendable {
     public static let awayThreshold: TimeInterval = 30 * 60
 
     public var askBeforeWatchedApps = true
-    public var frequency: PromptFrequency = .everyThirdOpen
+    /// Every open by default: a new user who has just set up an automation expects it to ask each time.
+    public var frequency: PromptFrequency = .everyOpen
     public var remindInWatchedApps = true
     public var remindAfterMinutes = 15
     public var watchedAppIDs: [String] = ["instagram", "tiktok"]

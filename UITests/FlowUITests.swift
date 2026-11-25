@@ -86,6 +86,49 @@ final class FlowUITests: XCTestCase {
         XCTAssertFalse(element("reminderTitle").waitForExistence(timeout: 2))
     }
 
+    func testNeverMindStaysOutOfTheApp() {
+        launch("-openURL", "whyamihere://ask?app=instagram")
+        waitFor(element("neverMindButton"), "Intent Check offers a way out")
+        element("neverMindButton").tap()
+        waitFor(element("notice"), "a notice confirms the choice")
+        XCTAssertEqual(element("notice").label, "Nice. Instagram can wait.")
+        waitFor(element("lastCheckIn"), "the choice is recorded")
+        XCTAssertTrue(element("lastCheckIn").label.hasPrefix("Last check-in: Changed Your Mind"))
+        XCTAssertTrue(element("stat.Pickups").label.contains("1"))
+        XCTAssertTrue(element("stat.Mindless").label.contains("0"), "not going in is not mindless")
+    }
+
+    func testSampleWeekAndEraseFromSettings() {
+        launch()
+        app.tabBars.buttons["Settings"].tap()
+        waitFor(element("remindMinutes"), "Settings loads")
+        scrollTo(element("loadSample"))
+        element("loadSample").tap()
+        confirm("Load Sample Week", title: "Replace your history with a sample week?")
+        waitFor(element("intentionalPercent"), "back on Today")
+        XCTAssertTrue(element("intentionalPercent").label.hasPrefix("62%"))
+
+        app.tabBars.buttons["Settings"].tap()
+        scrollTo(element("eraseAll"))
+        element("eraseAll").tap()
+        confirm("Erase", title: "Erase all data and settings?")
+        waitFor(app.staticTexts["No check-ins yet"], "history erased")
+        XCTAssertTrue(element("stat.Pickups").label.contains("0"))
+    }
+
+    /// Forms load rows lazily, so rows below the fold only exist once scrolled into view.
+    private func scrollTo(_ target: XCUIElement, file: StaticString = #filePath, line: UInt = #line) {
+        for _ in 0..<6 where !(target.exists && target.isHittable) { app.swipeUp() }
+        XCTAssertTrue(target.isHittable, "scrolled to \(target)", file: file, line: line)
+    }
+
+    /// Taps the confirming button of a dialog. Its label can repeat the row that opened it, so the last match wins.
+    private func confirm(_ label: String, title: String) {
+        waitFor(app.staticTexts[title], "confirmation dialog appears")
+        let buttons = app.buttons.matching(NSPredicate(format: "label == %@", label))
+        buttons.element(boundBy: buttons.count - 1).tap()
+    }
+
     func testUnwatchedAppIsNotAskedAbout() {
         launch("-openURL", "whyamihere://ask?app=youtube")
         waitFor(app.staticTexts["Today"], "app launches")
@@ -106,6 +149,12 @@ final class FlowUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Daily Pickups"].exists)
         XCTAssertTrue(element("insight").label.contains("out of boredom"))
 
+        // Any day's count can be read by tapping its bar.
+        let firstDay = element("day.0")
+        firstDay.tap()
+        XCTAssertTrue(firstDay.isSelected)
+        XCTAssertTrue((firstDay.value as? String)?.contains("pickups") ?? false)
+
         element("adjustReminders").tap()
         waitFor(app.staticTexts["Settings"], "Adjust Reminders opens Settings")
     }
@@ -125,8 +174,16 @@ final class FlowUITests: XCTestCase {
         XCTAssertTrue(element("frequency.afterThirtyMinutesAway").isSelected)
         XCTAssertFalse(element("frequency.everyOpen").isSelected)
 
-        XCTAssertTrue(app.staticTexts["From 10 PM to 7 AM."].exists)
+        XCTAssertTrue(element("frequencyDetail").label.contains("30 minutes away"), "the selected rule is explained")
 
+        app.swipeUp()
+        XCTAssertTrue(element("quietFooter").label.contains("from 10 PM to 7 AM"))
+        XCTAssertFalse(element("quietStart").exists, "hour pickers appear only when quiet hours are on")
+        element("quietToggle").switches.firstMatch.tap()
+        waitFor(element("quietStart"), "From picker appears")
+        XCTAssertTrue(element("quietFooter").label.hasPrefix("No questions or reminders"))
+
+        app.swipeDown()
         element("watchedApps").tap()
         waitFor(element("app.youtube"), "Watched Apps list")
         XCTAssertTrue(element("app.instagram").isSelected)

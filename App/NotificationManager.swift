@@ -86,6 +86,14 @@ final class NotificationManager: NSObject, ReminderScheduling, UNUserNotificatio
         center.removeDeliveredNotifications(withIdentifiers: identifiers)
     }
 
+    /// Clears every pending and delivered notification; used when the history is erased or replaced.
+    func cancelAll() {
+        guard enabled else { return }
+        center.removeAllPendingNotificationRequests()
+        center.removeAllDeliveredNotifications()
+        Log.notifications.info("all notifications cancelled")
+    }
+
     /// The banner shown after "I'm Done for Now".
     func postNiceWork() {
         guard enabled else { return }

@@ -59,10 +59,22 @@ struct IntentCheckView: View {
                     model.completeCheckIn(context, reason: selection, note: note)
                 }
                 .accessibilityIdentifier("continueButton")
-                QuietButton(title: "Skip for Now") {
-                    model.completeCheckIn(context, reason: nil, note: nil)
+                // Two ways out without a reason: go in anyway, or don't go in at all.
+                HStack(spacing: 0) {
+                    QuietButton(title: "Skip for Now") {
+                        model.completeCheckIn(context, reason: nil, note: nil)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .accessibilityIdentifier("skipButton")
+                    .accessibilityHint("Opens \(context.app.name) without answering.")
+                    Rectangle().fill(Theme.hairline).frame(width: 1, height: 22)
+                    QuietButton(title: "Never Mind") {
+                        model.changeMind(context)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .accessibilityIdentifier("neverMindButton")
+                    .accessibilityHint("Stays out of \(context.app.name).")
                 }
-                .accessibilityIdentifier("skipButton")
             }
         }
         .padding(.horizontal, Theme.screenPadding)

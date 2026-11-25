@@ -36,6 +36,8 @@ struct ReflectionView: View {
 
 private struct DailyPickupsCard: View {
     let week: WeekSummary
+    /// The day whose count is shown; nil shows the busiest day.
+    @State private var selected: Int?
 
     private let plotHeight: CGFloat = 132
     private let labelSpace: CGFloat = 24
@@ -43,6 +45,7 @@ private struct DailyPickupsCard: View {
     var body: some View {
         let top = max(1, week.days.map(\.count).max() ?? 1)
         let usable = plotHeight - labelSpace
+        let shown = selected ?? week.busiestIndex
         Card(padding: EdgeInsets(top: 14, leading: 16, bottom: 14, trailing: 16)) {
             VStack(spacing: 10) {
                 HStack {
@@ -55,21 +58,32 @@ private struct DailyPickupsCard: View {
 
                 HStack(alignment: .bottom, spacing: 0) {
                     ForEach(Array(week.days.enumerated()), id: \.element.id) { index, day in
-                        let highlighted = index == week.busiestIndex
+                        let highlighted = index == shown
                         VStack(spacing: 4) {
                             if highlighted {
                                 Text("\(day.count)")
                                     .font(.system(size: 15, weight: .semibold))
                                     .foregroundStyle(.white)
+                                    .contentTransition(.numericText())
                             }
                             RoundedRectangle(cornerRadius: 7, style: .continuous)
                                 .fill(highlighted ? Theme.accent : Color.white.opacity(day.count == 0 ? 0.12 : 0.34))
                                 .frame(width: 30, height: max(6, usable * CGFloat(day.count) / CGFloat(top)))
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            withAnimation(.easeOut(duration: 0.15)) { selected = selected == index ? nil : index }
+                        }
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel(Format.weekday(day.date))
+                        .accessibilityValue(day.isFuture ? "Not yet" : "\(day.count) pickups")
+                        .accessibilityAddTraits(highlighted ? [.isButton, .isSelected] : .isButton)
+                        .accessibilityIdentifier("day.\(index)")
                     }
                 }
                 .frame(height: plotHeight)
+                .sensoryFeedback(.selection, trigger: selected)
                 .overlay(alignment: .bottom) {
                     if week.pickups > 0 {
                         AverageLine()
@@ -83,13 +97,23 @@ private struct DailyPickupsCard: View {
                     ForEach(Array(week.days.enumerated()), id: \.element.id) { index, day in
                         Text(day.letter)
                             .font(.system(size: 12))
-                            .foregroundStyle(index == week.busiestIndex ? .white : Theme.secondary)
+                            .foregroundStyle(index == shown ? .white : Theme.secondary)
                             .frame(maxWidth: .infinity)
                     }
                 }
+                .accessibilityHidden(true)
+
+                if week.pickups > 0 {
+                    Text(selected.map { "\(Format.weekday(week.days[$0].date)). Tap again for the busiest day." }
+                         ?? "Tap a day to see its pickups.")
+                        .font(.system(size: 13))
+                        .foregroundStyle(Theme.tertiary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .accessibilityHidden(true)
+                }
             }
         }
-        .accessibilityElement(children: .ignore)
+        .accessibilityElement(children: .contain)
         .accessibilityLabel("Daily pickups, average \(Int(week.averagePerDay.rounded())) a day")
     }
 }

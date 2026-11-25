@@ -47,6 +47,25 @@ final class EngineTests: XCTestCase {
         XCTAssertNotNil(h.open())
     }
 
+    func testNeverMindRecordsPickupWithoutSessionOrReminders() throws {
+        let h = try Harness()
+        let id = try XCTUnwrap(h.open())
+        h.engine.changeMind(pickupID: id)
+        let record = try XCTUnwrap(h.store.pickup(id: id)?.record)
+        XCTAssertTrue(record.changedMind)
+        XCTAssertFalse(record.isMindless, "deciding not to go in is not a mindless pickup")
+        XCTAssertFalse(record.isIntentional)
+        XCTAssertEqual(record.duration(now: h.clock), 0)
+        XCTAssertTrue(h.store.activeSessions().isEmpty)
+        XCTAssertTrue(h.reminders.active.isEmpty)
+        XCTAssertEqual(Stats.lastCheckIn(h.store.lastCheckIn()?.record)?.label, "Changed Your Mind")
+
+        // The next open is a fresh pickup that asks again.
+        h.advance(minutes: 3)
+        XCTAssertNotNil(h.open())
+        XCTAssertEqual(h.store.totalCount, 2)
+    }
+
     func testAskDisabledStillRecordsPickupAndStartsSession() throws {
         let h = try Harness { $0.askBeforeWatchedApps = false }
         XCTAssertEqual(h.engine.appOpened(Harness.instagram), .passthrough(.askDisabled))

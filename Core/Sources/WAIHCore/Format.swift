@@ -34,6 +34,19 @@ public enum Format {
         return "\(f.string(from: interval.start)) – \(f.string(from: last))"
     }
 
+    /// "Monday"
+    public static func weekday(_ date: Date, calendar: Calendar = .current) -> String {
+        formatter("EEEE", calendar).string(from: date)
+    }
+
+    /// When a watched app was last opened through its automation: "today at 9:41 AM", "yesterday", "on Nov 20".
+    public static func lastSeen(_ date: Date, now: Date, calendar: Calendar = .current) -> String {
+        if calendar.isDate(date, inSameDayAs: now) { return "today at \(time(date, calendar: calendar))" }
+        if let yesterday = calendar.date(byAdding: .day, value: -1, to: now),
+           calendar.isDate(date, inSameDayAs: yesterday) { return "yesterday" }
+        return "on \(formatter("MMM d", calendar).string(from: date))"
+    }
+
     /// "+8%", "−8%" (true minus sign), "0%".
     public static func signedPercent(_ value: Int) -> String {
         if value > 0 { return "+\(value)%" }
