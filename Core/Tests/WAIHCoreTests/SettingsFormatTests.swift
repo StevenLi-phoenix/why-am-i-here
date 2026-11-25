@@ -5,7 +5,7 @@ final class SettingsFormatTests: XCTestCase {
     func testDefaultsMatchPrototype() {
         let settings = WAIHSettings()
         XCTAssertTrue(settings.askBeforeWatchedApps)
-        XCTAssertEqual(settings.frequency, .everyOpen, "a new user expects to be asked on every open")
+        XCTAssertEqual(settings.frequency, .everyThirdOpen)
         XCTAssertTrue(settings.remindInWatchedApps)
         XCTAssertEqual(settings.remindAfterMinutes, 15)
         XCTAssertEqual(settings.watchedSummary, "Instagram, TikTok")

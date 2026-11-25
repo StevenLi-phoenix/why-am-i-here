@@ -41,7 +41,7 @@ The order above (T1, T2, T5, T3, T4, T6, T7–T9) matters. T2 starts the session
 
 1. Test iPhone on iOS 26 or later, with the latest TestFlight build (public link https://testflight.apple.com/join/utJrrru3). Install Instagram and YouTube, and log Instagram into a **test account**, never the participant's.
 2. In Shortcuts → Automation, delete every "Ask Why I'm Here" and "Mark App Closed" automation left from the last participant.
-3. In Why Am I Here?, go to Settings → Erase All Data and Settings. Then set Remind After to **5** minutes so the T5 reminder arrives during the session. Allow notifications for the app, and turn Focus / Do Not Disturb off.
+3. In Why Am I Here?, go to Settings → Erase All Data and Settings. Then set How Often to **Every Open** (the default, Every 3rd Open, would let T2–T4 through without asking) and Remind After to **5** minutes so the T5 reminder arrives during the session. Allow notifications for the app, and turn Focus / Do Not Disturb off.
 4. Start the screen recording (Control Center), with the microphone on if the participant agrees.
 5. Fallback: if T1 runs out of time, the facilitator builds the Instagram "Is Opened" automation (rehearse it; it takes about 1 minute), so T2 onward can still run. Write T1 down as failed.
 6. Before T6: Settings → Load Sample Week. Say "I'm loading a week of sample data" and don't show the Settings screen. The sample week depends on today's date, so write the correct T6 answers (busiest day and its count, Monday's count) on your sheet first. Messages is always the top reason.

@@ -16,7 +16,7 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Changed
 
-- New installs ask on every open; the How Often footer explains the selected rule.
+- The How Often footer explains the selected rule (default stays Every 3rd Open, as in the prototype).
 - Watched Apps moved to its own section at the top of Settings.
 - Previews end with "That was a preview. Nothing was saved."
 - Reason names shrink slightly instead of being cut off.

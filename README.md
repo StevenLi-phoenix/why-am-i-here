@@ -71,8 +71,8 @@ To see the flow without setting anything up, use **Settings → Watched Apps →
 | Setting | Behavior |
 | --- | --- |
 | Ask Why Before Watched Apps | Off: nothing is asked, but pickups and screen time are still counted. |
-| How Often → Every Open | Asks every time. Default. |
-| How Often → Every 3rd Open | Asks on the 1st, 4th, 7th… open of each app per day. |
+| How Often → Every Open | Asks every time. |
+| How Often → Every 3rd Open | Asks on the 1st, 4th, 7th… open of each app per day. Default. |
 | How Often → After 30+ Minutes Away | Asks only if you last left the app at least 30 minutes ago. |
 | Remind Me in Watched Apps | Sends a reminder every N minutes of a session, up to four times. |
 | Remind After (Minutes) | 5 to 60, in steps of 5. Default 15. |

@@ -32,8 +32,8 @@ public struct WAIHSettings: Codable, Equatable, Sendable {
     public static let awayThreshold: TimeInterval = 30 * 60
 
     public var askBeforeWatchedApps = true
-    /// Every open by default: a new user who has just set up an automation expects it to ask each time.
-    public var frequency: PromptFrequency = .everyOpen
+    /// Every 3rd open by default, as in the prototype; the How Often footer explains the opens in between.
+    public var frequency: PromptFrequency = .everyThirdOpen
     public var remindInWatchedApps = true
     public var remindAfterMinutes = 15
     public var watchedAppIDs: [String] = ["instagram", "tiktok"]
